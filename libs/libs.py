@@ -3,6 +3,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_score
+from sklearn.preprocessing import PolynomialFeatures
 
 
 def TSS(y):
@@ -288,3 +289,28 @@ def forward_backward_selection(x, y, scoring="accuracy", iteration=None, keep_fi
 
     # print("Process is finish by maximum iteration.")
     return max_score_features
+
+
+def create_polynomial(x, degree=2, interaction=False):
+    assert degree > 1, "degree must be > 1, but get {}".format(degree)
+
+    features_list = x.columns
+
+    if interaction:
+        poly = PolynomialFeatures(degree=degree, include_bias=False)
+        new_x = poly.fit_transform(x)
+        new_feature = poly.get_feature_names(features_list)
+
+        polynomial = pd.DataFrame(new_x, columns=new_feature).drop(features_list, axis=1)
+    else:
+        polynomial = pd.DataFrame()
+        new_x = []
+        new_feature = []
+        for feature in features_list:
+            for d in range(2, degree + 1):
+                new_x = np.power(x[feature], d)
+                new_feature = feature + "^{}".format(d)
+
+                polynomial[new_feature] = new_x
+
+    return polynomial
